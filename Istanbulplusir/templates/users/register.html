@@ -1,0 +1,300 @@
+{% extends 'base.html' %} {% load static %} {% block title %}ثبت‌نام - Istanbul
+Plus{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+  /* Enhanced registration form styling */
+  .form-field-group {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    transition: all var(--transition-base);
+  }
+
+  .form-field-group:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .form-field-group-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-800);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .form-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .form-progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+  }
+
+  .form-progress-step::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--color-gray-300);
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  .form-progress-step:first-child::before {
+    left: 50%;
+    width: 50%;
+  }
+
+  .form-progress-step:last-child::before {
+    right: 50%;
+    width: 50%;
+    left: auto;
+  }
+
+  .form-progress-indicator {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+    position: relative;
+    z-index: 2;
+    margin: 0 auto var(--space-2);
+    font-size: var(--font-size-sm);
+  }
+
+  .form-progress-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-600);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Enhanced terms checkbox */
+  .terms-checkbox {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container auth-container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card auth-card">
+        <div class="card-header">
+          <h3 class="mb-0">
+            <i class="bi bi-person-plus me-2"></i>
+            ایجاد حساب کاربری جدید
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Alert container for messages -->
+          <div id="alert-container" class="mb-3"></div>
+
+          <form id="register-form">
+            {% csrf_token %}
+
+            <!-- Personal Information -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="first_name"
+                    name="first_name"
+                    placeholder="نام"
+                  />
+                  <label for="first_name">نام</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="last_name"
+                    name="last_name"
+                    placeholder="نام خانوادگی"
+                  />
+                  <label for="last_name">نام خانوادگی</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Username -->
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="نام کاربری"
+                required
+              />
+              <label for="username">نام کاربری *</label>
+              <div class="form-text">نام کاربری باید منحصر به فرد باشد</div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    placeholder="ایمیل"
+                    required
+                  />
+                  <label for="email">ایمیل *</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="phone"
+                    name="phone"
+                    placeholder="شماره موبایل"
+                    required
+                  />
+                  <label for="phone">شماره موبایل *</label>
+                  <div class="form-text">مثال: 09123456789</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Password fields -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="رمز عبور"
+                    required
+                  />
+                  <label for="password">رمز عبور *</label>
+                  <div class="password-strength">
+                    <div class="password-strength-bar"></div>
+                  </div>
+                  <div class="form-text">حداقل 8 کاراکتر</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating mb-3">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password_confirm"
+                    name="password_confirm"
+                    placeholder="تکرار رمز عبور"
+                    required
+                  />
+                  <label for="password_confirm">تکرار رمز عبور *</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- OTP Delivery Method Selection -->
+            <div class="mb-3">
+              <label class="form-label">روش دریافت کد تأیید:</label>
+              <div class="delivery-method-group">
+                <div class="delivery-method-btn active" data-method="sms">
+                  <i class="bi bi-phone"></i>
+                  <span>پیامک</span>
+                </div>
+                <div class="delivery-method-btn" data-method="email">
+                  <i class="bi bi-envelope"></i>
+                  <span>ایمیل</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- OTP field (initially hidden) -->
+            <div class="form-floating mb-3 otp-field" style="display: none">
+              <input
+                type="text"
+                class="form-control otp-input"
+                id="otp_code"
+                name="otp_code"
+                placeholder="کد تأیید"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                inputmode="numeric"
+                required
+              />
+              <label for="otp_code">کد تأیید *</label>
+              <div class="form-text">کد 6 رقمی ارسال شده را وارد کنید</div>
+            </div>
+
+            <!-- Terms and conditions -->
+            <div class="form-check mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="terms"
+                required
+              />
+              <label class="form-check-label" for="terms">
+                با
+                <a href="#" class="text-decoration-none">قوانین و مقررات</a>
+                موافقم *
+              </label>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-grid gap-2 mb-3">
+              <button type="button" class="btn btn-secondary-auth send-otp-btn">
+                <i class="bi bi-send me-2"></i>
+                ارسال کد تأیید
+              </button>
+              <button type="submit" class="btn btn-auth">
+                <i class="bi bi-person-plus me-2"></i>
+                ثبت‌نام
+              </button>
+            </div>
+
+            <!-- Login link -->
+            <div class="text-center">
+              <span class="text-muted">قبلاً ثبت‌نام کرده‌اید؟</span>
+              <a href="{% url 'users:login' %}" class="text-decoration-none">
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+                ورود
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

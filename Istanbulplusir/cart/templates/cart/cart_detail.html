@@ -1,0 +1,153 @@
+{% extends 'base.html' %} {% block title %}سبد خرید{% endblock %} {% block
+content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">سبد خرید</h5>
+      </div>
+      <div class="card-body">
+        {% if cart.items.all %}
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>محصول</th>
+                <th>قیمت واحد</th>
+                <th>تعداد</th>
+                <th>قیمت کل</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in cart.items.all %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    {% if item.product.image %}
+                    <img
+                      src="{{ item.product.image.url }}"
+                      alt="{{ item.product.name }}"
+                      class="img-thumbnail me-2"
+                      style="max-width: 50px"
+                    />
+                    {% endif %} {{ item.product.name }}
+                  </div>
+                </td>
+                <td>{{ item.product.price }} تومان</td>
+                <td>
+                  <div class="input-group" style="max-width: 120px">
+                    <button
+                      class="btn btn-outline-secondary btn-sm"
+                      onclick="updateQuantity({{ item.id }}, -1)"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="text"
+                      class="form-control text-center"
+                      value="{{ item.quantity }}"
+                      readonly
+                    />
+                    <button
+                      class="btn btn-outline-secondary btn-sm"
+                      onclick="updateQuantity({{ item.id }}, 1)"
+                    >
+                      +
+                    </button>
+                  </div>
+                </td>
+                <td>{{ item.total_price }} تومان</td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="removeItem({{ item.id }})"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-center">سبد خرید شما خالی است.</p>
+        <div class="text-center">
+          <a href="{% url 'products:product_list' %}" class="btn btn-primary"
+            >مشاهده محصولات</a
+          >
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">خلاصه سفارش</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span>جمع کل:</span>
+          <span>{{ cart.total_price }} تومان</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span>تخفیف:</span>
+          <span>{{ cart.discount_amount }} تومان</span>
+        </div>
+        <hr />
+        <div class="d-flex justify-content-between mb-3">
+          <strong>مبلغ قابل پرداخت:</strong>
+          <strong>{{ cart.final_price }} تومان</strong>
+        </div>
+        {% if cart.items.all %}
+        <a href="{% url 'orders:checkout' %}" class="btn btn-primary w-100"
+          >ادامه فرآیند خرید</a
+        >
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  function updateQuantity(itemId, change) {
+    fetch(`/api/cart/items/${itemId}/update/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({
+        change: change,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        }
+      });
+  }
+
+  function removeItem(itemId) {
+    if (confirm("آیا از حذف این محصول اطمینان دارید؟")) {
+      fetch(`/api/cart/items/${itemId}/remove/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            location.reload();
+          }
+        });
+    }
+  }
+</script>
+{% endblock %}

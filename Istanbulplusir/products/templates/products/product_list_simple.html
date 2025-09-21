@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% load static %} {% load humanize %} {% block content
+%}
+<div class="container mt-4">
+  <h2 class="mb-4">محصولات</h2>
+
+  <div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        {% if product.image %}
+        <img
+          src="{{ product.image.url }}"
+          class="card-img-top"
+          alt="{{ product.name }}"
+        />
+        {% else %}
+        <img
+          src="{% static 'img/no-image.svg' %}"
+          class="card-img-top"
+          alt="تصویر محصول"
+        />
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text">{{ product.description|truncatewords:10 }}</p>
+          <p class="text-primary">{{ product.price|intcomma }} تومان</p>
+          <a
+            href="{% url 'products:product_detail' product.slug %}"
+            class="btn btn-primary"
+            >مشاهده جزئیات</a
+          >
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">محصولی یافت نشد.</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

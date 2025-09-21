@@ -1,0 +1,86 @@
+{% extends 'base.html' %} {% block title %}تکمیل سفارش{% endblock %} {% block
+content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">مشخصات تحویل گیرنده</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'orders:create_order' %}">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">نام و نام خانوادگی</label>
+              <input
+                type="text"
+                class="form-control"
+                name="full_name"
+                value="{{ user.get_full_name }}"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">شماره تماس</label>
+              <input
+                type="tel"
+                class="form-control"
+                name="phone"
+                value="{{ user.phone }}"
+                required
+              />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">آدرس کامل</label>
+            <textarea
+              class="form-control"
+              name="address"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">توضیحات (اختیاری)</label>
+            <textarea class="form-control" name="notes" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            ثبت سفارش و پرداخت
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">خلاصه سفارش</h5>
+      </div>
+      <div class="card-body">
+        {% for item in cart.items.all %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span>{{ item.product.name }} × {{ item.quantity }}</span>
+          <span>{{ item.total_price }} تومان</span>
+        </div>
+        {% endfor %}
+        <hr />
+        <div class="d-flex justify-content-between mb-2">
+          <span>جمع کل:</span>
+          <span>{{ cart.total_price }} تومان</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>تخفیف:</span>
+          <span>{{ cart.discount_amount }} تومان</span>
+        </div>
+        <hr />
+        <div class="d-flex justify-content-between">
+          <strong>مبلغ قابل پرداخت:</strong>
+          <strong>{{ cart.final_price }} تومان</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

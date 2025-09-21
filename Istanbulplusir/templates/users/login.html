@@ -1,0 +1,274 @@
+{% extends 'base.html' %} {% load static %} {% block title %}ورود - Istanbul
+Plus{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+  /* Enhanced loading states for authentication */
+  .auth-loading {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Enhanced micro-interactions */
+  .auth-card {
+    animation: slideInUp 0.6s var(--ease-out);
+  }
+
+  @keyframes slideInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Success state animation */
+  .form-success-animation {
+    animation: successPulse 0.6s var(--ease-out);
+  }
+
+  @keyframes successPulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container auth-container">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="auth-card form-glass">
+        <div class="card-header">
+          <h1 class="mb-0 h3">
+            <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+            ورود به حساب کاربری
+          </h1>
+        </div>
+        <div class="card-body">
+          <!-- Alert container for messages -->
+          <div
+            id="alert-container"
+            class="mb-3"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          ></div>
+
+          <form id="login-form" novalidate aria-labelledby="login-heading">
+            {% csrf_token %}
+            <div class="visually-hidden" id="login-heading">
+              فرم ورود به حساب کاربری
+            </div>
+
+            <!-- Username/Email/Phone field -->
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="نام کاربری، ایمیل یا شماره موبایل"
+                aria-describedby="username-help"
+                aria-required="true"
+                required
+                autocomplete="username"
+              />
+              <label for="username">نام کاربری، ایمیل یا شماره موبایل</label>
+              <div id="username-help" class="form-text visually-hidden">
+                می‌توانید با نام کاربری، ایمیل یا شماره موبایل وارد شوید
+              </div>
+              <div class="invalid-feedback">
+                لطفاً نام کاربری یا ایمیل معتبر وارد کنید.
+              </div>
+            </div>
+
+            <!-- Password field -->
+            <div class="form-floating mb-3">
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="رمز عبور"
+                aria-describedby="password-help"
+                autocomplete="current-password"
+              />
+              <label for="password">رمز عبور (اختیاری برای ورود با OTP)</label>
+              <div id="password-help" class="form-text">
+                رمز عبور اختیاری است. می‌توانید با کد تأیید وارد شوید
+              </div>
+              <div class="invalid-feedback">رمز عبور نامعتبر است.</div>
+            </div>
+
+            <!-- OTP Delivery Method Selection -->
+            <fieldset class="mb-3">
+              <legend class="form-label">روش دریافت کد تأیید:</legend>
+              <div
+                class="delivery-method-group"
+                role="radiogroup"
+                aria-labelledby="delivery-method-legend"
+              >
+                <div
+                  class="delivery-method-btn active"
+                  data-method="sms"
+                  role="radio"
+                  aria-checked="true"
+                  tabindex="0"
+                  aria-describedby="sms-desc"
+                >
+                  <i class="bi bi-phone" aria-hidden="true"></i>
+                  <span>پیامک</span>
+                  <span class="visually-hidden" id="sms-desc"
+                    >دریافت کد تأیید از طریق پیامک</span
+                  >
+                </div>
+                <div
+                  class="delivery-method-btn"
+                  data-method="email"
+                  role="radio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  aria-describedby="email-desc"
+                >
+                  <i class="bi bi-envelope" aria-hidden="true"></i>
+                  <span>ایمیل</span>
+                  <span class="visually-hidden" id="email-desc"
+                    >دریافت کد تأیید از طریق ایمیل</span
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- OTP field (initially hidden) -->
+            <div
+              class="form-floating mb-3 otp-field"
+              style="display: none"
+              aria-hidden="true"
+            >
+              <input
+                type="text"
+                class="form-control otp-input"
+                id="otp_code"
+                name="otp_code"
+                placeholder="کد تأیید"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                inputmode="numeric"
+                aria-describedby="otp-help"
+                autocomplete="one-time-code"
+              />
+              <label for="otp_code">کد تأیید</label>
+              <div id="otp-help" class="form-text">
+                کد 6 رقمی ارسال شده را وارد کنید
+              </div>
+              <div class="invalid-feedback">کد تأیید نامعتبر است.</div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-grid gap-2 mb-3">
+              <button
+                type="button"
+                class="btn btn-secondary send-otp-btn position-relative"
+                aria-describedby="send-otp-desc"
+              >
+                <span
+                  class="spinner-border spinner-border-sm d-none position-absolute top-50 start-0 translate-middle-y ms-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                <i class="bi bi-send me-2" aria-hidden="true"></i>
+                <span class="btn-text">ارسال کد تأیید</span>
+                <span class="visually-hidden" id="send-otp-desc"
+                  >ارسال کد تأیید به شماره موبایل یا ایمیل</span
+                >
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary position-relative"
+                aria-describedby="login-desc"
+              >
+                <span
+                  class="spinner-border spinner-border-sm d-none position-absolute top-50 start-0 translate-middle-y ms-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+                <span class="btn-text">ورود</span>
+                <span class="visually-hidden" id="login-desc"
+                  >ورود به حساب کاربری</span
+                >
+              </button>
+            </div>
+
+            <!-- Additional links -->
+            <nav class="text-center" aria-label="لینک‌های مرتبط">
+              <div class="mb-2">
+                <a
+                  href="{% url 'users:password-reset-request' %}"
+                  class="text-decoration-none"
+                  aria-describedby="forgot-password-desc"
+                >
+                  <i class="bi bi-key me-1" aria-hidden="true"></i>
+                  فراموشی رمز عبور
+                  <span class="visually-hidden" id="forgot-password-desc"
+                    >بازیابی رمز عبور فراموش شده</span
+                  >
+                </a>
+              </div>
+              <div>
+                <span class="text-muted">حساب کاربری ندارید؟</span>
+                <a
+                  href="{% url 'users:register' %}"
+                  class="text-decoration-none"
+                  aria-describedby="register-desc"
+                >
+                  <i class="bi bi-person-plus me-1" aria-hidden="true"></i>
+                  ثبت‌نام
+                  <span class="visually-hidden" id="register-desc"
+                    >ایجاد حساب کاربری جدید</span
+                  >
+                </a>
+              </div>
+            </nav>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

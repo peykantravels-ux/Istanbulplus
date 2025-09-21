@@ -1,0 +1,603 @@
+{% extends 'base.html' %} {% load static %} {% block title %}پروفایل کاربری{%
+endblock %} {% block extra_css %}
+<style>
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #dee2e6;
+  }
+  .avatar-upload {
+    position: relative;
+    display: inline-block;
+  }
+  .avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+  }
+  .verification-badge {
+    font-size: 0.8em;
+    margin-left: 5px;
+  }
+  .session-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+  }
+  .current-session {
+    border-color: #28a745;
+    background: #d4edda;
+  }
+  .security-setting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+  }
+  .security-setting:last-child {
+    border-bottom: none;
+  }
+  .nav-tabs .nav-link {
+    color: #495057;
+  }
+  .nav-tabs .nav-link.active {
+    color: #007bff;
+    border-color: #007bff #007bff #fff;
+  }
+  .password-confirm-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  .password-confirm-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+  }
+  .loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="mb-4">پروفایل کاربری</h2>
+
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="profile-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#profile"
+            type="button"
+            role="tab"
+          >
+            <i class="fas fa-user"></i> اطلاعات شخصی
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="sessions-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#sessions"
+            type="button"
+            role="tab"
+          >
+            <i class="fas fa-desktop"></i> جلسات فعال
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="security-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#security"
+            type="button"
+            role="tab"
+          >
+            <i class="fas fa-shield-alt"></i> تنظیمات امنیتی
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="profileTabContent">
+        <!-- Profile Information Tab -->
+        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+          <div class="card mt-3">
+            <div class="card-body">
+              <div class="row">
+                <!-- Avatar Section -->
+                <div class="col-md-3 text-center">
+                  <div class="avatar-upload mb-3">
+                    <img
+                      src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                      alt="Avatar"
+                      class="profile-avatar"
+                      id="avatar-preview"
+                    />
+                    <button
+                      type="button"
+                      class="avatar-upload-btn"
+                      onclick="document.getElementById('avatar-input').click()"
+                    >
+                      <i class="fas fa-camera"></i>
+                    </button>
+                    <input
+                      type="file"
+                      id="avatar-input"
+                      accept="image/*"
+                      style="display: none"
+                    />
+                  </div>
+                  <h5>{{ user.get_full_name|default:user.username }}</h5>
+                  <p class="text-muted">{{ user.email }}</p>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="col-md-9">
+                  <form id="profile-form">
+                    {% csrf_token %}
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="first_name">نام</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="first_name"
+                            name="first_name"
+                            value="{{ user.first_name|default:'' }}"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="last_name">نام خانوادگی</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="last_name"
+                            name="last_name"
+                            value="{{ user.last_name|default:'' }}"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="username">نام کاربری</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="username"
+                            name="username"
+                            value="{{ user.username }}"
+                            readonly
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="birth_date">تاریخ تولد</label>
+                          <input
+                            type="date"
+                            class="form-control"
+                            id="birth_date"
+                            name="birth_date"
+                            value="{{ user.birth_date|date:'Y-m-d'|default:'' }}"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="email">ایمیل</label>
+                          <div class="input-group">
+                            <input
+                              type="email"
+                              class="form-control"
+                              id="email"
+                              name="email"
+                              value="{{ user.email|default:'' }}"
+                            />
+                            <div class="input-group-append">
+                              {% if user.email_verified %}
+                              <span class="badge bg-success verification-badge"
+                                >تأیید شده</span
+                              >
+                              {% else %}
+                              <span class="badge bg-warning verification-badge"
+                                >تأیید نشده</span
+                              >
+                              {% endif %}
+                            </div>
+                          </div>
+                          {% if not user.email_verified and user.email %}
+                          <small class="text-muted">
+                            <a href="#" id="resend-email-verification"
+                              >ارسال مجدد ایمیل تأیید</a
+                            >
+                          </small>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label for="phone">شماره موبایل</label>
+                          <div class="input-group">
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="phone"
+                              name="phone"
+                              value="{{ user.phone|default:'' }}"
+                              placeholder="+989123456789"
+                            />
+                            <div class="input-group-append">
+                              {% if user.phone_verified %}
+                              <span class="badge bg-success verification-badge"
+                                >تأیید شده</span
+                              >
+                              {% else %}
+                              <span class="badge bg-warning verification-badge"
+                                >تأیید نشده</span
+                              >
+                              {% endif %}
+                            </div>
+                          </div>
+                          {% if not user.phone_verified and user.phone %}
+                          <small class="text-muted">
+                            <a href="#" id="verify-phone">تأیید شماره موبایل</a>
+                          </small>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h6>تنظیمات اطلاع‌رسانی</h6>
+                        <div class="form-check mb-2">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="email_notifications"
+                            name="email_notifications"
+                            {%
+                            if
+                            user.email_notifications
+                            %}checked{%
+                            endif
+                            %}
+                          />
+                          <label
+                            class="form-check-label"
+                            for="email_notifications"
+                          >
+                            دریافت اطلاع‌رسانی از طریق ایمیل
+                          </label>
+                        </div>
+                        <div class="form-check mb-3">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="sms_notifications"
+                            name="sms_notifications"
+                            {%
+                            if
+                            user.sms_notifications
+                            %}checked{%
+                            endif
+                            %}
+                          />
+                          <label
+                            class="form-check-label"
+                            for="sms_notifications"
+                          >
+                            دریافت اطلاع‌رسانی از طریق پیامک
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> ذخیره تغییرات
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-secondary ms-2"
+                        id="change-password-btn"
+                      >
+                        <i class="fas fa-key"></i> تغییر رمز عبور
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Sessions Tab -->
+        <div class="tab-pane fade" id="sessions" role="tabpanel">
+          <div class="card mt-3">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h5 class="mb-0">جلسات فعال</h5>
+              <button class="btn btn-danger btn-sm" id="logout-all-btn">
+                <i class="fas fa-sign-out-alt"></i> خروج از همه دستگاه‌ها
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="sessions-list">
+                <div class="loading-spinner">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">در حال بارگذاری...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Settings Tab -->
+        <div class="tab-pane fade" id="security" role="tabpanel">
+          <div class="card mt-3">
+            <div class="card-header">
+              <h5 class="mb-0">تنظیمات امنیتی</h5>
+            </div>
+            <div class="card-body">
+              <div class="security-setting">
+                <div>
+                  <strong>احراز هویت دو مرحله‌ای</strong>
+                  <br />
+                  <small class="text-muted"
+                    >افزایش امنیت حساب با کد تأیید اضافی</small
+                  >
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="two_factor_enabled"
+                    {%
+                    if
+                    user.two_factor_enabled
+                    %}checked{%
+                    endif
+                    %}
+                  />
+                  <label
+                    class="form-check-label"
+                    for="two_factor_enabled"
+                  ></label>
+                </div>
+              </div>
+
+              <div class="security-setting">
+                <div>
+                  <strong>آخرین ورود</strong>
+                  <br />
+                  <small class="text-muted">
+                    {% if user.last_login %} {{ user.last_login|date:"Y/m/d H:i"
+                    }} {% if user.last_login_ip %}از IP: {{ user.last_login_ip
+                    }}{% endif %} {% else %} هیچ ورودی ثبت نشده {% endif %}
+                  </small>
+                </div>
+              </div>
+
+              <div class="security-setting">
+                <div>
+                  <strong>وضعیت حساب</strong>
+                  <br />
+                  <small class="text-muted">
+                    {% if user.is_locked %}
+                    <span class="text-danger"
+                      >قفل شده تا {{ user.locked_until|date:"Y/m/d H:i" }}</span
+                    >
+                    {% else %}
+                    <span class="text-success">فعال</span>
+                    {% endif %}
+                  </small>
+                </div>
+              </div>
+
+              <div class="security-setting">
+                <div>
+                  <strong>تلاش‌های ناموفق ورود</strong>
+                  <br />
+                  <small class="text-muted"
+                    >{{ user.failed_login_attempts }} تلاش ناموفق</small
+                  >
+                </div>
+                {% if user.failed_login_attempts > 0 %}
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  id="reset-failed-attempts"
+                >
+                  بازنشانی
+                </button>
+                {% endif %}
+              </div>
+
+              <div class="mt-4">
+                <h6>عملیات امنیتی</h6>
+                <button class="btn btn-warning me-2" id="download-data-btn">
+                  <i class="fas fa-download"></i> دانلود اطلاعات شخصی
+                </button>
+                <button class="btn btn-danger" id="delete-account-btn">
+                  <i class="fas fa-trash"></i> حذف حساب کاربری
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Password Confirmation Modal -->
+<div id="password-confirm-modal" class="password-confirm-modal">
+  <div class="password-confirm-content">
+    <h5>تأیید رمز عبور</h5>
+    <p>برای انجام این عملیات، لطفاً رمز عبور فعلی خود را وارد کنید:</p>
+    <form id="password-confirm-form">
+      <div class="form-group mb-3">
+        <input
+          type="password"
+          class="form-control"
+          id="current-password"
+          placeholder="رمز عبور فعلی"
+          required
+        />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-secondary me-2"
+          onclick="closePasswordModal()"
+        >
+          انصراف
+        </button>
+        <button type="submit" class="btn btn-primary">تأیید</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تغییر رمز عبور</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="change-password-form">
+          <div class="form-group mb-3">
+            <label for="current_password">رمز عبور فعلی</label>
+            <input
+              type="password"
+              class="form-control"
+              id="current_password"
+              name="current_password"
+              required
+            />
+          </div>
+          <div class="form-group mb-3">
+            <label for="new_password">رمز عبور جدید</label>
+            <input
+              type="password"
+              class="form-control"
+              id="new_password"
+              name="new_password"
+              required
+            />
+          </div>
+          <div class="form-group mb-3">
+            <label for="confirm_password">تکرار رمز عبور جدید</label>
+            <input
+              type="password"
+              class="form-control"
+              id="confirm_password"
+              name="confirm_password"
+              required
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          انصراف
+        </button>
+        <button type="button" class="btn btn-primary" id="save-password-btn">
+          ذخیره
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phone Verification Modal -->
+<div class="modal fade" id="phoneVerificationModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تأیید شماره موبایل</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>کد تأیید به شماره <strong id="phone-display"></strong> ارسال شد.</p>
+        <form id="phone-verification-form">
+          <div class="form-group mb-3">
+            <label for="otp_code">کد تأیید</label>
+            <input
+              type="text"
+              class="form-control"
+              id="otp_code"
+              name="otp_code"
+              maxlength="6"
+              required
+            />
+          </div>
+        </form>
+        <p><a href="#" id="resend-phone-otp">ارسال مجدد کد</a></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          انصراف
+        </button>
+        <button type="button" class="btn btn-primary" id="verify-phone-btn">
+          تأیید
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}
